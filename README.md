@@ -1,6 +1,6 @@
 # keech-dev-container
 
-A VS Code Dev Container for AI-assisted .NET development with a network-level firewall sandbox. Ships with Claude Code and GSD pre-installed in an isolated environment where only whitelisted services are reachable.
+A multi-container VS Code Dev Container for AI-assisted .NET development with a network-level firewall sandbox. Ships with Claude Code, GSD, PostgreSQL 17, and Grafana 11.5 in an isolated environment where only whitelisted services are reachable.
 
 ## Features
 
@@ -14,6 +14,27 @@ A VS Code Dev Container for AI-assisted .NET development with a network-level fi
 - **Git Delta** for enhanced diffs
 - **Node.js via Volta** toolchain manager
 - **GitHub CLI** (`gh`) pre-installed
+- **PostgreSQL 17** with `psql` client in the dev container
+- **Grafana 11.5** for dashboards and monitoring
+
+## Services
+
+The devcontainer uses Docker Compose with three services on a shared bridge network:
+
+| Service | Image | Purpose | Forwarded Port |
+|---|---|---|---|
+| **app** | Built from `Dockerfile` (.NET 10 SDK) | Main dev container with all tools | — |
+| **postgres** | `postgres:17` | PostgreSQL database (`devdb`) | `5432` |
+| **grafana** | `grafana/grafana:11.5` | Dashboards and monitoring | `3000` |
+
+**Default credentials:**
+
+| Service | Username | Password |
+|---|---|---|
+| PostgreSQL | `postgres` | `postgres` |
+| Grafana | `admin` | `admin` |
+
+The app container waits for PostgreSQL to be healthy before starting. PG connection variables (`PGHOST`, `PGUSER`, etc.) are pre-configured so `psql` works with no arguments.
 
 ## Prerequisites
 
@@ -53,7 +74,7 @@ The firewall (`init-firewall.sh`) runs at every container start and enforces a s
 - DNS (UDP port 53) is always allowed
 - SSH (TCP port 22) outbound is allowed
 - Docker's internal DNS resolver (`127.0.0.11`) is preserved
-- Host network (auto-detected) is allowed for VS Code server communication
+- All local/container network interfaces (host network, docker-compose bridge, docker0) are auto-detected and allowed
 - Established/related connections are tracked with conntrack
 
 **Built-in verification** — the script confirms that `example.com` is blocked and `api.github.com` is reachable before completing.
@@ -70,14 +91,13 @@ The firewall (`init-firewall.sh`) runs at every container start and enforces a s
 | Volta | Official installer (`get.volta.sh`) |
 | Node.js | Volta-managed |
 | fzf | apt |
+| psql | apt (`postgresql-client`) |
 
 ## VS Code Extensions
 
 The following extensions are automatically installed in the container:
 
 - **C# Dev Kit** (`ms-dotnettools.csdevkit`)
-- **C#** (`ms-dotnettools.csharp`)
-- **.NET Runtime** (`ms-dotnettools.vscode-dotnet-runtime`)
 - **Claude Code** (`anthropic.claude-code`)
 - **Docker** (`ms-azuretools.vscode-containers`)
 - **Markdown All in One** (`yzhang.markdown-all-in-one`)
@@ -102,23 +122,19 @@ The following extensions are automatically installed in the container:
 | `LANG` | `en_US.UTF-8` |
 | `LC_ALL` | `en_US.UTF-8` |
 | `POWERLEVEL9K_DISABLE_GITSTATUS` | `true` |
+| `PGHOST` | `postgres` |
+| `PGPORT` | `5432` |
+| `PGUSER` | `postgres` |
+| `PGPASSWORD` | `postgres` |
+| `PGDATABASE` | `devdb` |
 
-### Volume Mounts
+### Volumes
 
-| Mount | Purpose |
-|---|---|
-| `claude-code-bashhistory-*` → `/commandhistory` | Persistent zsh/bash history |
-| `claude-code-config-*` → `/home/vscode/.claude` | Persistent Claude Code configuration |
-
-## Claude Code Customizations
-
-This repository includes personal Claude Code commands, hooks, skills, and subagent configurations in the `.claude/` directory. These are shared as reference examples and are tailored to this dev container workflow.
-
-### Commands
-
-| Command | Description |
-|---|---|
-| `/code-review` | Reviews a pull request for bugs and CLAUDE.md compliance, outputting findings to the terminal (local-only, no PR comments) |
+| Volume | Container Path | Purpose |
+|---|---|---|
+| `claude-code-home` | `/home/vscode` | Persistent home directory (shell history, Claude config) |
+| `postgres-data` | `/var/lib/postgresql/data` | PostgreSQL data |
+| `grafana-data` | `/var/lib/grafana` | Grafana dashboards and config |
 
 ## Customization
 
@@ -138,12 +154,12 @@ Rebuild or restart the container for changes to take effect.
 
 ### Changing the timezone
 
-Set the `TZ` environment variable on your host before building, or edit the build arg in `devcontainer.json`:
+Set the `TZ` environment variable on your host before building, or edit the build arg in `docker-compose.yml`:
 
-```json
-"args": {
-    "TZ": "Europe/London"
-}
+```yaml
+build:
+  args:
+    TZ: "Europe/London"
 ```
 
 ### Adding VS Code extensions

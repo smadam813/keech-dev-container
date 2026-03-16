@@ -102,19 +102,21 @@ for domain in \
     done < <(echo "$ips")
 done
 
-# Get host IP from default route
-HOST_IP=$(ip route | grep default | cut -d" " -f3)
-if [ -z "$HOST_IP" ]; then
-    echo "ERROR: Failed to detect host IP"
+# Allow traffic on all local/container network interfaces
+# Covers: host network (VS Code server), docker-compose bridge (postgres, grafana), docker0
+echo "Detecting local networks..."
+LOCAL_NETWORKS=$(ip -4 addr show | grep 'inet ' | grep -v '127.0.0.1')
+if [ -z "$LOCAL_NETWORKS" ]; then
+    echo "ERROR: No local networks detected"
     exit 1
 fi
-
-HOST_NETWORK=$(echo "$HOST_IP" | sed "s/\.[0-9]*$/.0\/24/")
-echo "Host network detected as: $HOST_NETWORK"
-
-# Set up remaining iptables rules
-iptables -A INPUT -s "$HOST_NETWORK" -j ACCEPT
-iptables -A OUTPUT -d "$HOST_NETWORK" -j ACCEPT
+while IFS= read -r line; do
+    cidr=$(echo "$line" | awk '{print $2}')
+    iface=$(echo "$line" | awk '{print $NF}')
+    echo "Allowing network $cidr on $iface"
+    iptables -A INPUT -s "$cidr" -j ACCEPT
+    iptables -A OUTPUT -d "$cidr" -j ACCEPT
+done <<< "$LOCAL_NETWORKS"
 
 # Set default policies to DROP first
 iptables -P INPUT DROP

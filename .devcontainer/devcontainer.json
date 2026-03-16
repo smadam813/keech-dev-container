@@ -1,17 +1,8 @@
 {
   "name": "Claude Code Sandbox",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "args": {
-      "TZ": "${localEnv:TZ:America/New_York}",
-      "GIT_DELTA_VERSION": "0.18.2",
-      "ZSH_IN_DOCKER_VERSION": "1.2.0"
-    }
-  },
-  "runArgs": [
-    "--cap-add=NET_ADMIN",
-    "--cap-add=NET_RAW"
-  ],
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "forwardPorts": ["postgres:5432", "grafana:3000"],
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
@@ -49,15 +40,6 @@
     }
   },
   "remoteUser": "vscode",
-  "mounts": [
-    "source=claude-code-home-${devcontainerId},target=/home/vscode,type=volume"
-  ],
-  "containerEnv": {
-    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
-    "DOTNET_NOLOGO": "1",
-    "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
-  },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
   "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
   "waitFor": "postStartCommand"
