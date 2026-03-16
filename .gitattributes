@@ -1,0 +1,13 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell — must be LF for Docker/Linux execution
+*.sh text eol=lf
+
+# Config
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Content
+*.md text eol=lf
