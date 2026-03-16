@@ -2,7 +2,10 @@
   "name": "Claude Code Sandbox",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
-  "forwardPorts": ["postgres:5432", "grafana:3000"],
+  "forwardPorts": [
+    "postgres:5432",
+    "grafana:3000"
+  ],
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
@@ -12,6 +15,7 @@
         "anthropic.claude-code",
         "ms-azuretools.vscode-containers",
         "ms-dotnettools.csdevkit",
+        "ms-ossdata.vscode-pgsql",
         "yzhang.markdown-all-in-one"
       ],
       "settings": {
