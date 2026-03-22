@@ -85,7 +85,6 @@ The firewall (`init-firewall.sh`) runs at every container start and enforces a s
 |---|---|
 | Claude Code | Native installer (`claude.ai/install.sh`) |
 | GSD | npx (`get-shit-done-cc@latest --claude --global`) |
-| update-ai-agents.sh | Shell script (`update-agents` alias) |
 | Git Delta | `.deb` package (v0.18.2) |
 | GitHub CLI | apt (`gh`) |
 | Volta | Official installer (`get.volta.sh`) |

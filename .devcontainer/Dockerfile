@@ -96,7 +96,6 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   -a "export PROMPT_COMMAND='history -a' && export HISTFILE=~/.zsh_history" \
   -a 'export VOLTA_HOME="$HOME/.volta"' \
   -a 'export PATH="$VOLTA_HOME/bin:$PATH"' \
-  -a 'alias update-agents="update-ai-agents.sh"' \
   -x
 
 # Install Volta (JavaScript toolchain manager)
@@ -113,9 +112,3 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Install GSD (Get Shit Done) for Claude Code
 RUN CLAUDE_CONFIG_DIR="/home/$USERNAME/.claude" npx get-shit-done-cc@latest --claude --global
-
-USER root
-COPY update-ai-agents.sh /usr/local/bin/
-RUN sed -i 's/\r$//' /usr/local/bin/update-ai-agents.sh && \
-  chmod +x /usr/local/bin/update-ai-agents.sh
-USER $USERNAME
