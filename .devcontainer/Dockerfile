@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0
 ARG TZ
 ENV TZ="$TZ"
 
-# Install basic development tools and iptables/ipset
+# Install basic development tools
 # Note: .NET 10 SDK image is Ubuntu 24.04 (Noble) based
 RUN apt-get update && apt-get install -y --no-install-recommends \
   less \
@@ -16,11 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unzip \
   gnupg2 \
   gh \
-  iptables \
-  ipset \
   iproute2 \
   dnsutils \
-  aggregate \
   jq \
   nano \
   vim \
@@ -117,13 +114,7 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 # Install GSD (Get Shit Done) for Claude Code
 RUN CLAUDE_CONFIG_DIR="/home/$USERNAME/.claude" npx get-shit-done-cc@latest --claude --global
 
-# Copy and set up firewall script
-COPY init-firewall.sh /usr/local/bin/
 USER root
-RUN sed -i 's/\r$//' /usr/local/bin/init-firewall.sh && \
-  chmod +x /usr/local/bin/init-firewall.sh && \
-  echo "$USERNAME ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/$USERNAME-firewall && \
-  chmod 0440 /etc/sudoers.d/$USERNAME-firewall
 COPY update-ai-agents.sh /usr/local/bin/
 RUN sed -i 's/\r$//' /usr/local/bin/update-ai-agents.sh && \
   chmod +x /usr/local/bin/update-ai-agents.sh

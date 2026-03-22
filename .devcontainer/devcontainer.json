@@ -7,7 +7,13 @@
     "grafana:3000"
   ],
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/w3cj/devcontainer-features/firewall:0": {
+      "verbose": true,
+      "githubIps": true,
+      "claudeCode": true,
+      "hosts": "volta.sh,get.volta.sh,nodejs.org,api.nuget.org,builds.dotnet.microsoft.com,download.visualstudio.microsoft.com,dotnet.microsoft.com,dot.net,aka.ms,vscode.blob.core.windows.net,update.code.visualstudio.com,fonts.googleapis.com,fonts.gstatic.com"
+    }
   },
   "customizations": {
     "vscode": {
@@ -45,6 +51,5 @@
   },
   "remoteUser": "vscode",
   "workspaceFolder": "/workspace",
-  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
   "waitFor": "postStartCommand"
 }
