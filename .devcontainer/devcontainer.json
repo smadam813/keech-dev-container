@@ -4,7 +4,7 @@
   "service": "app",
   "forwardPorts": [
     "postgres:5432",
-    "grafana:3000"
+    "grafana:3030"
   ],
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},

@@ -25,7 +25,7 @@ The devcontainer uses Docker Compose with three services on a shared bridge netw
 |---|---|---|---|
 | **app** | Built from `Dockerfile` (.NET 10 SDK) | Main dev container with all tools | — |
 | **postgres** | `postgres:17` | PostgreSQL database (`devdb`) | `5432` |
-| **grafana** | `grafana/grafana:11.5` | Dashboards and monitoring | `3000` |
+| **grafana** | `grafana/grafana:11.5` | Dashboards and monitoring | `3030` |
 
 **Default credentials:**
 
