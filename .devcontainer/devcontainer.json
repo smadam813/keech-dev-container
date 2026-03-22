@@ -19,6 +19,8 @@
     "vscode": {
       "extensions": [
         "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
         "ms-azuretools.vscode-containers",
         "ms-dotnettools.csdevkit",
         "ms-ossdata.vscode-pgsql",
