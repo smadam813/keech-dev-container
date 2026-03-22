@@ -60,31 +60,19 @@ while read -r cidr; do
         exit 1
     fi
     echo "Adding GitHub range $cidr"
-    ipset add allowed-domains "$cidr" -exist
+    ipset add allowed-domains "$cidr"
 done < <(echo "$gh_ranges" | jq -r '(.web + .api + .git)[]' | aggregate -q)
 
 # Resolve and add other allowed domains
 for domain in \
     "registry.npmjs.org" \
     "api.anthropic.com" \
-    "claude.ai" \
     "sentry.io" \
     "statsig.anthropic.com" \
     "statsig.com" \
-    "volta.sh" \
-    "get.volta.sh" \
-    "nodejs.org" \
-    "api.nuget.org" \
-    "builds.dotnet.microsoft.com" \
-    "download.visualstudio.microsoft.com" \
-    "dotnet.microsoft.com" \
-    "dot.net" \
-    "aka.ms" \
     "marketplace.visualstudio.com" \
     "vscode.blob.core.windows.net" \
-    "update.code.visualstudio.com" \
-    "fonts.googleapis.com" \
-    "fonts.gstatic.com"; do
+    "update.code.visualstudio.com"; do
     echo "Resolving $domain..."
     ips=$(dig +noall +answer A "$domain" | awk '$4 == "A" {print $5}')
     if [ -z "$ips" ]; then
@@ -98,25 +86,23 @@ for domain in \
             exit 1
         fi
         echo "Adding $ip for $domain"
-        ipset add allowed-domains "$ip" -exist
+        ipset add allowed-domains "$ip"
     done < <(echo "$ips")
 done
 
-# Allow traffic on all local/container network interfaces
-# Covers: host network (VS Code server), docker-compose bridge (postgres, grafana), docker0
-echo "Detecting local networks..."
-LOCAL_NETWORKS=$(ip -4 addr show | grep 'inet ' | grep -v '127.0.0.1')
-if [ -z "$LOCAL_NETWORKS" ]; then
-    echo "ERROR: No local networks detected"
+# Get host IP from default route
+HOST_IP=$(ip route | grep default | cut -d" " -f3)
+if [ -z "$HOST_IP" ]; then
+    echo "ERROR: Failed to detect host IP"
     exit 1
 fi
-while IFS= read -r line; do
-    cidr=$(echo "$line" | awk '{print $2}')
-    iface=$(echo "$line" | awk '{print $NF}')
-    echo "Allowing network $cidr on $iface"
-    iptables -A INPUT -s "$cidr" -j ACCEPT
-    iptables -A OUTPUT -d "$cidr" -j ACCEPT
-done <<< "$LOCAL_NETWORKS"
+
+HOST_NETWORK=$(echo "$HOST_IP" | sed "s/\.[0-9]*$/.0\/24/")
+echo "Host network detected as: $HOST_NETWORK"
+
+# Set up remaining iptables rules
+iptables -A INPUT -s "$HOST_NETWORK" -j ACCEPT
+iptables -A OUTPUT -d "$HOST_NETWORK" -j ACCEPT
 
 # Set default policies to DROP first
 iptables -P INPUT DROP
